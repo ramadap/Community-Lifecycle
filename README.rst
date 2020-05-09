@@ -33,7 +33,7 @@ Two sample functions are provided, one for gephi gexf format (input) and another
 
 
 Output:
-	Console text describing community events at the end and start of each timestep with additional stattistics depending on parameters 
+	Console text describing community events at the end and start of each timestep with additional statistics depending on parameters 
 
 
 Parameters
@@ -48,7 +48,7 @@ This file is shared with Syntgen, and only the two parameters included below are
 
     "DEBUG",verbose output (debug),No
     "jaccard_null_model",whether to adjust the jaccard index to a null random model when comparing communities for lifecycle determination",TRUE
-    "Sigma","jaccard threshold for community matching, value between [0,1] 1 requires exact matching",0.2
+    "Sigma","jaccard threshold for community matching, value between [0,1] 1 requires exact matching",0.5
 
 User defined functions
 ***********************
