@@ -28,8 +28,8 @@ to run:
 
 
 Input:
-User should code an input function that returns the time ordered triple (timestamp, node number, community number) for every invocation. 
-Two sample functions are provided, one for gephi gexf format (input) and another (input_football) for a CSV file with one line per snapshot, where position indicates node number and the value, the community it belongs to. 
+User should code a python module with a class ReadData that exposes a return_single_node() method that returns a boolean and a time ordered triple (timestamp, node number, community number) for every invocation. The boolean raises "True" if no more data is available, "False" otherwise. 
+Two sample modules are provided, one for gephi gexf format (input) and another (input_football) for a CSV file with one line per snapshot, where position indicates node number and the value, the community it belongs to. 
 
 
 Output:
