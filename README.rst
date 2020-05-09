@@ -29,7 +29,7 @@ to run:
 
 Input:
 User should code an input function that returns the time ordered triple (timestamp, node number, community number) for every invocation. 
-Two samples functions are provided, one for gephi gexf format (input) and another (input_football), a CSV file with one line per snapshot, where position indicates node number and the value, the community it belongs to. 
+Two sample functions are provided, one for gephi gexf format (input) and another (input_football) for a CSV file with one line per snapshot, where position indicates node number and the value, the community it belongs to. 
 
 
 Output:
