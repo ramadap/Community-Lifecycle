@@ -39,7 +39,7 @@ Output:
 Parameters
 =============
 
-All input specified in file **user_specifications.py**
+All input parameters are specified in file **user_specifications.py**
 This file is shared with Syntgen, and only the two parameters included below are used in lifecycle determination. 
 
 .. csv-table:: Behaviour parameters
@@ -53,7 +53,7 @@ This file is shared with Syntgen, and only the two parameters included below are
 User defined functions
 ***********************
 
-User defined functions are shared with Syntgen. Only the print parameters function should be changed for lifecycle determination 
+Withe the exception of the user input function, that should be specified in the file "Taxonomy.py", user defined functions are shared with Syntgen. Only the print parameters function should be changed for lifecycle determination.  
 
 Print parameters
 *********************************************************
@@ -71,87 +71,3 @@ Print parameters
     continuity = False
     community_events_t0 = True
     community_events_t1 = True
-
-
-Sample of User Changes Function
-*******************************
-.. code:: python
-
-    def user_changes_specs(communities: 'list[Community]', nodes: 'list[Nodes]') -> 'list[Nodes]':
-        """ returns a list of nodes to delete. it's up to the user which nodes should be killed
-        :param communities: list of community objects
-        :param nodes: list of node objects
-        :return: dead_node_vector: list of nodes to delete (default 10% randomly selected)
-
-Sample of community distribution functions
-*******************************************
-.. code:: python
-
-    def community_distribution_power_law() -> 'list[int]':
-        """ returns a community size distribution in a list
-
-        In this example a power law distribution according to default parameters is returned. User is free to code it's own
-        distribution.
-
-        :return: list of community sizes
-
-Sample of node distribution function
-************************************
-.. code:: python
-
-    def node_distribution_power_law(community_sizes: 'list[int]', retries) -> 'list[int],list[int]':
-        """
-        returns two node degree distributions: total  and INTRA
-
-        to generate feasible distributions there should not be a skew towards large and small degrees (bathtub)
-        maximum degree should be substantially lower than community size???
-        :param community_sizes: Community sizes distribution
-        :param retries:  retry number if previous sequence non graphic
-
-        :return: lists of total and INTRA node degrees
-
-
-Parameters for user supplied functions examples
-***********************************************
-.. parsed-literal::
-
-    community_distribution samples parameters:
-	community_distribution_power_law
-	desired_number_of_nodes.........................................500
-	delta (power exponent)..........................................1.5
-	max_community_sizes.............................................300
-	min_community_sizes.............................................20
-
-	community_distribution_exponential
-	desired_number_of_nodes.........................................500
-	beta (scale parameter and mean).................................1
-	max_community_sizes.............................................300
-	min_community_sizes.............................................20
-
-	community_distribution_random
-	desired_number_of_nodes.........................................500
-	max_community_sizes.............................................300
-	min_community_sizes.............................................20
-
-
-    node_distribution samples parameters:
-	node_distribution_power_law
-	mix_ratio (intra to total) .....................................0.7
-	fixed (or bernoulli)............................................False
-	gamma (power exponent)..........................................2.5
-	max_degree......................................................40
-	min_degree......................................................8
-
-	node_distribution_exponential
-	mix_ratio (intra to total) .....................................0.7
-	fixed (or bernoulli)............................................False
-	gamma(power exponent)...........................................4
-	max_degree......................................................40
-	min_degree......................................................8
-
-	node_distribution_random
-	pkk (probability of intra link).................................0.2
-	pkn (probability of inter link).................................0.002
-	fixed (or bernoulli)............................................False
-	mix_ratio (intra to total)......................................0.7
-
