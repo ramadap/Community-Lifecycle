@@ -9,7 +9,7 @@ or to "A Taxonomy of Community Lifecycle Events in Temporal Networks", on IEEE X
 
 This python code uses various classes from "Syntgen: A synthetic temporal network generator with clustering and known ground truth"  published in the IMA Journal of Complex Networks, https://doi.org/10.1093/comnet/cnz039. Syntgen code is available at https://github.com/ramadap/Syntgen
 
-This package is a Python system to analyse a timestamped sequence of tuples containing a note and its community.
+This package is a Python system to analyse a timestamped sequence of tuples containing a node and its community.
 It outputs a printed list of community lifecycle events as described in the referenced paper. 
 
 The main program expects a triple of integers (timestamp, node number, community number) for every input invocation. 
