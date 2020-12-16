@@ -4,10 +4,10 @@ Taxonomy: Community-Lifecycle, Code to analyse a temporal network and output com
 
 Description
 #############
-Please refer to "Community identity in a temporal network: A taxonomy proposal", Pereira et al., pre-print submitted to Elsevier.
-or to "A Taxonomy of Community Lifecycle Events in Temporal Networks", on IEEE Xplore repository.
+Please refer to "Community identity in a temporal network: A taxonomy proposal", Pereira et al., on Ecological Complexity, in press. https://ciencia.iscte-iul.pt/publications/community-identity-in-a-temporal-network-a-taxonomy-proposal/77648
+or to "A Taxonomy of Community Lifecycle Events in Temporal Networks", on IEEE Xplore repository https://ieeexplore.ieee.org/document/8930777/.
 
-This python code uses various classes from "Syntgen: A synthetic temporal network generator with clustering and known ground truth"  published in the IMA Journal of Complex Networks, https://doi.org/10.1093/comnet/cnz039. Syntgen code is available at https://github.com/ramadap/Syntgen
+This python code uses various classes from "Syntgen: A synthetic temporal network generator with clustering and known ground truth" published in the IMA Journal of Complex Networks, https://doi.org/10.1093/comnet/cnz039. Syntgen code is available at https://github.com/ramadap/Syntgen
 
 This package is a Python system to analyse a timestamped sequence of tuples containing a node and its community.
 It outputs a printed list of community lifecycle events as described in the referenced paper. 
@@ -29,7 +29,7 @@ to run:
 
 Input:
 User should code a python module with a class ReadData that exposes a return_single_node() method that returns a boolean and a time ordered triple (timestamp, node number, community number) for every invocation. The boolean raises "True" if no more data is available, "False" otherwise. 
-Two sample modules are provided, one for gephi gexf format (input) and another (input_football) for a CSV file with one line per snapshot, where position indicates node number and the value, the community it belongs to. 
+Two sample modules are provided, one for gephi gexf format (input_gexf) and another (input_csv) for a CSV file with one line per snapshot, where position indicates node number and the value, the community it belongs to. 
 
 
 Output:
@@ -71,3 +71,5 @@ Print parameters
     continuity = False
     community_events_t0 = True
     community_events_t1 = True
+    exclude_continuations = True
+    
