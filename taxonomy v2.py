@@ -8,19 +8,19 @@ from transition import match_communities, create_confusion_matrix, \
     create_continuation_matrix, find_rebirths, State, vi
 from constants import *
 from network import Community, Nodes
-from user_specifications import DEBUG, sigma, jaccard_null_model
-from output import printouts
-from input import ReadData  # read one record at a time (time stamp/ node / community)
+from user_specifications import sigma, jaccard_null_model
+from output_v2 import printouts
+from input_csv import ReadData  # read one record at a time (time stamp/ node / community)
+#from input import ReadData
 import numpy as np
 
 eof, timestamp, node_number, community_name = ReadData.return_single_node()
-# print(timestamp, node_number, community_name)
+
 new_communities = []
 dead_communities = []
 nodes = []
 states = []
 states_count = []
-exclude_continuations = True
 
 while not eof:
     time_slice_previous = timestamp
@@ -43,7 +43,6 @@ while not eof:
         new_communities[-1][index].nodes.append(node)
 
         eof, timestamp, node_number, community_name = ReadData.return_single_node()
-        # print(timestamp, node_number, community_name)
 
         # find frequent clusterings
         state_names = (';'.join(map(str, sorted([comm.community_name for comm in new_communities[-1]]))))
@@ -72,8 +71,12 @@ while not eof:
                                  if communities.community_events[-1][1] != "P"]
         if candidate_communities:
             dead_confusion = create_confusion_matrix(dead_communities, candidate_communities)
+            save_jaccard_index_matrix = Community.jaccard_index.copy()
+            save_continuation_matrix = Community.continuation.copy()
             create_continuation_matrix(dead_confusion, sigma, jaccard_null_model)
             set_dead_communities = dead_communities.copy()
             find_rebirths(set_dead_communities, candidate_communities, dead_communities)
+            Community.jaccard_index = save_jaccard_index_matrix
+            Community.continuation = save_continuation_matrix
 
-        printouts(None, score, new_communities[-2], new_communities[-1], exclude_continuations)
+        printouts(confusion, score, new_communities[-2], new_communities[-1])
