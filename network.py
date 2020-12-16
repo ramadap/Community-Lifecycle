@@ -13,6 +13,7 @@ from constants import *
 from user_specifications import community_distribution, degree_affinity, assortativity, stop_if_disjoint
 
 
+
 class Nodes:
     """
 
@@ -60,6 +61,15 @@ class Nodes:
         _, _, insertion_point = Nodes.is_node(node_number)
         Nodes.list_nodes[insertion_point:insertion_point] = [self]
 
+    def __eq__(self, node):
+        return self is node
+
+    def __lt__(self, node):
+        return node.node_number > self.node_number
+
+    def __gt__(self, node):
+        return node.node_number < self.node_number
+
     def get_community(self):
         return self.community
 
@@ -100,6 +110,7 @@ class Community:
     top_community_name = 1  # community name for time series
     jaccard_index = None  # jaccard matrix for a T to T+1 transition
     continuation = None  # same for continuation matrix
+
 
     def __init__(self, nodes, community = None):
         self.nodes = []
@@ -149,7 +160,7 @@ class Community:
     def set_ground_truth(self, type: 'str'= None, event: 'str'= None, communities: 'list[Community]'= None):
         """
         Tracks community evolution
-        :param type: "S" start of time-slice, "E" end of time slice, "R" reborn in, "T" reborn from
+        :param type: "S" start of time-slice, "E" end of time slice, "F" reborn from, "T" reborn to
         :param event: see dict
         :param communities: associated communities
         :return:
@@ -157,7 +168,7 @@ class Community:
         if event == 'reset':
             self.community_events = []
         else:
-            if type in ["S", "R", "F"]:  # start of time step
+            if type in ["S", "F"]:  # start of time step
                 self.community_events.append((type, event, Ts.timestamp, communities))
             else:                           # end of time step
                 self.community_events.append((type, event, Ts.timestamp-1, communities))
