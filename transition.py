@@ -304,33 +304,6 @@ def flow_nodes(communities_t0, communities_t1, nodes_t1, solution, confusion_mat
             transfer_nodes(source_community, target_community, nodes_t1, flow)
 
 
-def create_confusion_matrix_deprecated(communities_t0: 'list[Community]', communities_t1: 'list[Community]'):
-    """
-    creates the confusion Matrix, including new nodes row and dead nodes column
-    Nodes list must have up to date community membership (t1)
-    :param communities_t0:
-    :param communities_t1:
-    :return confusion_matrix:
-    """
-    confusion_matrix = np.zeros([len(communities_t0)+1, len(communities_t1)+1], int)
-    current_timestamp = communities_t1[0].timestamp[1]  # assuming all communities at t1 have the same timestamp
-    for i, community_t0 in enumerate(communities_t0):
-        for node_number in [node.node_number for node in community_t0.nodes]:
-            # binary search for node number
-            node = bisect_left([node.node_number for node in Nodes.list_nodes], node_number)
-            if Nodes.list_nodes[node].node_number != node_number:
-                raise Exception('Incongruous network')
-            if Nodes.list_nodes[node].lifecycle[-1][1] == current_timestamp:                    # currently active?
-                confusion_matrix[i, communities_t1.index(Nodes.list_nodes[node].community)] += 1       # yes
-            else:
-                confusion_matrix[i, len(communities_t1)] += 1                               # no, update dead column
-    # update new nodes
-    for i, community_t1 in enumerate(communities_t1):
-        confusion_matrix[len(communities_t0), i] = community_t1.total_nodes-confusion_matrix[:, i].sum()
-
-    return confusion_matrix
-
-
 def create_confusion_matrix(communities_t0: 'list[Community]', communities_t1: 'list[Community]'):
     """
     creates the confusion Matrix, including new nodes row and dead nodes column
@@ -371,8 +344,7 @@ def create_continuation_matrix(confusion_matrix: 'np.array(int,int)', sigma: 'fl
     # avoid 0/0 errors for no births and deaths
     with np.errstate(invalid='ignore'):
         Community.jaccard_index = confusion_matrix / (t_union - confusion_matrix)
-        if np.isnan(Community.jaccard_index[-1, -1]):
-            Community.jaccard_index[-1, -1] = 0
+        np.nan_to_num(Community.jaccard_index, copy=False)
 
     # if the user wants it normalized to the null hypothesis
     if jaccard_null_model:
@@ -381,59 +353,14 @@ def create_continuation_matrix(confusion_matrix: 'np.array(int,int)', sigma: 'fl
         # avoid 0/0 errors for no births and deaths
         with np.errstate(invalid='ignore'):
             jaccard_null = confusion_null / (t_union - confusion_null)
-            if np.isnan(jaccard_null[-1, -1]):
-                jaccard_null[-1, -1] = 0
-        Community.jaccard_index = (Community.jaccard_index - jaccard_null) / (1 - jaccard_null)
-        Community.jaccard_index[Community.jaccard_index < 0] = 0
+            np.nan_to_num(jaccard_null, copy=False)
 
-    # compute selection criteria 1: if jaccard index above sigma, 0: otherwise
-    # exclude births and deaths
-    Community.continuation = Community.jaccard_index[0:-1, 0:-1].copy()
-    Community.continuation[Community.continuation < sigma] = 0
-    Community.continuation[Community.continuation > 0] = 1
-
-
-def match_communities_deprecated(communities_t0: 'list[Community]', communities_t1: 'list[Community]',
-                      confusion_matrix: 'np.array(int,int)', sigma: 'float', jaccard_null_model: 'bool',
-                      dead_communities: 'list[Community]'= None, rebirth: 'bool'= False):
-    """
-    Match communities between T and T+1
-
-    :param communities_t0: community objects at time T
-    :param communities_t1: Community objects at time T+1
-    :param confusion_matrix: Matrix of shared nodes between communities @ time T & T+1
-    :param sigma: Jaccard index threshold
-    :param jaccard_null_model; True if jaccard should be normalized to [random null - 1]
-    :param rebirth: Just computing rebirths?
-    :param dead_communities: List of dead communities
-    :return:
-    """
-
-    # sizes of all communities
-    t0_sizes = confusion_matrix.sum(axis=1)
-    t1_sizes = confusion_matrix.sum(axis=0)
-
-    # build the matrix of the union cardinalities for the communities cartesian product
-    t0_transpose = np.array([t0_sizes]).transpose()
-    t_union = t1_sizes + t0_transpose
-
-    # compute the jaccard index
-    # avoid 0/0 errors for no births and deaths
-    with np.errstate(invalid='ignore'):
-        Community.jaccard_index = confusion_matrix / (t_union - confusion_matrix)
-        if np.isnan(Community.jaccard_index[-1, -1]):
-            Community.jaccard_index[-1, -1] = 0
-
-    # if the user wants it normalized to the null hypothesis
-    if jaccard_null_model:
-        t1_total = t1_sizes.sum()
-        confusion_null = t1_sizes / t1_total * t0_transpose
-        # avoid 0/0 errors for no births and deaths
+        # compute factor to adjust to JI if all source community nodes remain together
         with np.errstate(invalid='ignore'):
-            jaccard_null = confusion_null / (t_union - confusion_null)
-            if np.isnan(jaccard_null[-1, -1]):
-                jaccard_null[-1, -1] = 0
-        Community.jaccard_index = (Community.jaccard_index - jaccard_null) / (1 - jaccard_null)
+            factor = 1-(confusion_matrix-confusion_null)/(np.minimum(np.array([t0_sizes]).T, t1_sizes)-confusion_null)
+            np.nan_to_num(factor, copy=False)
+        Community.jaccard_index = (Community.jaccard_index - jaccard_null * factor) / (1 - jaccard_null * factor)
+        # print(Community.jaccard_index)
         Community.jaccard_index[Community.jaccard_index < 0] = 0
 
     # compute selection criteria 1: if jaccard index above sigma, 0: otherwise
@@ -441,69 +368,6 @@ def match_communities_deprecated(communities_t0: 'list[Community]', communities_
     Community.continuation = Community.jaccard_index[0:-1, 0:-1].copy()
     Community.continuation[Community.continuation < sigma] = 0
     Community.continuation[Community.continuation > 0] = 1
-
-    # compute number of successful relations per community (splits on x axis, merges on y axis)
-    splits = Community.continuation.sum(axis=1)
-    merges = Community.continuation.sum(axis=0)
-    # indexes where flow of nodes exist
-    t0 = np.where(splits == 1)[0]  # indexes of relations for t0
-    t1 = np.where(merges == 1)[0]
-
-    # compute all entries that contain a single 1 in the continuation row/column matrix
-    single_flows = list(it.product(t0, t1))
-
-    # and build tuples of all possible entries
-    continuation_indexes = list(zip(*np.where(Community.continuation == 1)))
-
-    if rebirth:
-        [(communities_t1[t[1]].set_ground_truth("F", "B", communities_t0[t[0]]),
-          communities_t0[t[0]].set_ground_truth("T", "B", communities_t1[t[1]]),
-          dead_communities.remove(communities_t0[t[0]]))
-         for t in continuation_indexes]
-        #  for t in continuation_indexes if t in single_flows]
-        return
-    """ if rebirth:
-        [(communities_t1[t[1]].set_ground_truth("R", "B", communities_t0[t[0]]),
-          communities_t0[t[0]].set_ground_truth("T", "B", communities_t1[t[1]]))
-         for t in continuation_indexes]
-        [dead_communities.remove(communities_t0[t[0]]) for t in continuation_indexes]  
-        return """
-    # standard matching
-    # now fnd all continuations
-    [(communities_t0[t[0]].set_ground_truth("E", "G" if t0_sizes[t[0]] < t1_sizes[t[1]] else
-                                            "C" if t0_sizes[t[0]] > t1_sizes[t[1]] else "P",
-                                            communities_t1[t[1]]),
-      communities_t1[t[1]].set_ground_truth("S", "G" if t0_sizes[t[0]] < t1_sizes[t[1]] else
-                                            "C" if t0_sizes[t[0]] > t1_sizes[t[1]] else "P",
-                                            communities_t0[t[0]]))
-     for t in continuation_indexes if t in single_flows]
-
-    # find deaths by Dissolution "D" or fragmentation "F"
-    [(communities_t0[i].set_ground_truth("E", "D" if t0_sizes[i] >= 2*np.sum(confusion_matrix[i, 0:-1]) else "F"),
-      dead_communities.append(communities_t0[i]))
-     for i in np.where(splits == 0)[0]]
-
-    # find splits
-    [communities_t0[i].set_ground_truth("E", "S",
-                                        [communities_t1[j] for j in np.where(Community.continuation[i] == 1)[0]])
-     for i in np.where(splits > 1)[0]]
-
-    # find merges
-    [communities_t0[t[0]].set_ground_truth("E", "M", communities_t1[t[1]])
-     for t in continuation_indexes if t not in single_flows and merges[t[1]] > 1]
-
-    # find births, newborn "N" or regeneration "R"
-    [communities_t1[i].set_ground_truth("S", "N" if t1_sizes[i] >= 2*np.sum(confusion_matrix[0:-1, i]) else "R")
-     for i in np.where(merges == 0)[0]]
-
-    # birth from split
-    [(communities_t1[t[1]].set_ground_truth("S", "S", communities_t0[t[0]]))
-     for t in continuation_indexes if t not in single_flows and splits[t[0]] > 1]
-
-    # birth from merge
-    [communities_t1[i].set_ground_truth("S", "M",
-                                        [communities_t0[j] for j in np.where(Community.continuation[:, i])[0]])
-     for i in np.where(merges > 1)[0]]
 
 
 def match_communities(communities_t0: 'list[Community]', communities_t1: 'list[Community]',
@@ -518,6 +382,9 @@ def match_communities(communities_t0: 'list[Community]', communities_t1: 'list[C
     :param dead_communities: List of dead communities
     :return:
     """
+    def same_community(community_t0: 'Community', community_t1: Community) -> 'bool':
+        return sorted(community_t0.nodes) == sorted(community_t1.nodes)
+
     # sizes of all communities
     t0_sizes = confusion_matrix.sum(axis=1)
     t1_sizes = confusion_matrix.sum(axis=0)
@@ -537,15 +404,19 @@ def match_communities(communities_t0: 'list[Community]', communities_t1: 'list[C
     # standard matching
     # now fnd all continuations
     [(communities_t0[t[0]].set_ground_truth("E", "G" if t0_sizes[t[0]] < t1_sizes[t[1]] else
-                                            "C" if t0_sizes[t[0]] > t1_sizes[t[1]] else "P",
+                                            "C" if t0_sizes[t[0]] > t1_sizes[t[1]] else
+                                            "P" if same_community(communities_t0[t[0]], communities_t1[t[1]]) else
+                                            "O",
                                             [communities_t1[t[1]]]),
       communities_t1[t[1]].set_ground_truth("S", "G" if t0_sizes[t[0]] < t1_sizes[t[1]] else
-                                            "C" if t0_sizes[t[0]] > t1_sizes[t[1]] else "P",
+                                            "C" if t0_sizes[t[0]] > t1_sizes[t[1]] else
+                                            "P" if same_community(communities_t0[t[0]], communities_t1[t[1]]) else
+                                            "O",
                                             [communities_t0[t[0]]]))
      for t in continuation_indexes if t in single_flows]
 
     # find deaths by Dissolution "D" or fragmentation "F"
-    [(communities_t0[i].set_ground_truth("E", "D" if t0_sizes[i] >= 2*np.sum(confusion_matrix[i, 0:-1]) else "F"),
+    [(communities_t0[i].set_ground_truth("E", "F" if t0_sizes[i] >= 2*np.sum(confusion_matrix[i, 0:-1]) else "A"),
       dead_communities.append(communities_t0[i]))
      for i in np.where(splits == 0)[0]]
 
@@ -585,9 +456,12 @@ def find_rebirths(communities_t0: 'list[Community]', communities_t1: 'list[Commu
 
     continuation_indexes = list(zip(*np.where(Community.continuation == 1)))
 
-    [(communities_t1[t[1]].set_ground_truth("F", "B", [communities_t0[t[0]]]),
-      communities_t0[t[0]].set_ground_truth("T", "B", [communities_t1[t[1]]]))
+    [(communities_t1[t[1]].set_ground_truth("F", "B", [communities_t0[t[0]]]))
      for t in continuation_indexes]
+
+    #[(communities_t1[t[1]].set_ground_truth("F", "B", [communities_t0[t[0]]]),
+    #  communities_t0[t[0]].set_ground_truth("T", "B", [communities_t1[t[1]]]))
+    # for t in continuation_indexes]
     [dead_communities.remove(communities_t0[t[0]])
      for t in continuation_indexes if communities_t0[t[0]] in dead_communities]
 
