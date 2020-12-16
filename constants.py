@@ -27,19 +27,20 @@ ALFA_MAX = 5            # Strongest dissortative (used for beta_assortativity di
 # alfa_assortativity and beta_assortativity parameters)
 BETA_MAX = 5           # Strongest assortative
 
-EVENT_DICT = {'N': 'Newbirth',
-              'R': 'Regeneration',
-              'G': 'Growth',
-              'C': 'Contraction',
-              'P': 'Continuation',
+EVENT_DICT = {'N': 'Begin',
+              'R': 'Regenerate',
+              'G': 'Grow',
+              'C': 'Contract',
+              'P': 'Preserve',
+              'O': 'Replace',
               'S': 'Split',
               'M': 'Merge',
-              'D': 'Dissolution',
-              'F': 'Fragmentation',
-              'B': 'Rebirth'}
+              'F': 'Vanish',
+              'A': 'Absorb',
+              'B': 'Resurge'}
 
-TYPE_DICT = {'S': 'Start',
-             'E': 'End',
+TYPE_DICT = {'S': 'Start',          # current state
+             'E': 'End',            # what happened at the end of the transition
              'T': 'To',
              'F': 'From'}
 
