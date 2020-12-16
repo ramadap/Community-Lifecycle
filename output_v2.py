@@ -152,33 +152,45 @@ def print_community_events(communities, next_to_last, exclude_continuation):
 
         else:
             for event in events:
-                if event[0] in ["S", "R", "F"]:
+                if event[0] in ["S", "F"]:
                     if not next_to_last:
                         if not exclude_continuation or (not event[1] == "P"):
-                            print("{0:>15s} {1:4d} {2:10s} {3:4d} {4:5s} {5:5d} {6:6s} {7:12s}".format(
-                                "Start timestep", event[2], "community", community.get_community_name(),  "with",
-                                community.get_number_nodes(), "nodes", EVENT_DICT[event[1]]), end=' ')
+                            print("{0:>4s} {1:4d} {2:10s} {3:4d} {4:13s}".format(
+                                "->TS", event[2], "community", community.get_community_name(), "with nodes")
+                                , end='')
+                            print("{0:40s} {1:12s}".format(
+                                str(tuple(p.node_number for p in community.nodes))[1:-1], EVENT_DICT[event[1]]),
+                                  end='')
                             if event[3] and event[0] != "F":
-                                print(" from ", [comm.get_community_name() for comm in event[3]], end=' ')
+                                print("{0:15s} {1:10s} {2:14s} {3:40s}".format(" from community",
+                                      str(tuple(comm.get_community_name() for comm in event[3]))[1:-1],
+                                      " with nodes ", str(tuple(p.node_number for comm in event[3]
+                                                                  for p in comm.nodes))[1:-1]), end='')
                             if event[3] and event[0] == "F":
-                                print(" from ", [(comm.get_community_name(), "@", comm.timestamp[0])
-                                                 for comm in event[3]], end=' ')
+                                print("{0:15s} {1:40s}".format(" from community",
+                                      str([(comm.get_community_name(), "@", comm.timestamp[0])
+                                                                  for comm in event[3]])[1:-1]), end=' ')
                             print()
                 else:
                     if not exclude_continuation or (not event[1] == "P"):
-                        print("{0:>15s} {1:4d} {2:10s} {3:4d} {4:5s} {5:5d} {6:6s} {7:12s}".format(
-                            "End timestep", event[2], "community", community.get_community_name(), "with",
-                            community.get_number_nodes(), "nodes", EVENT_DICT[event[1]]), end=' ')
+                        print("{0:>4s} {1:4d} {2:10s} {3:4d} {4:13s}".format(
+                            "TS<-", event[2], "community", community.get_community_name(), "with nodes"),
+                            end='')
+                        print("{0:40s} {1:12s}".format(
+                            str(tuple(p.node_number for p in community.nodes))[1:-1], EVENT_DICT[event[1]]), end='')
                         if event[3]:
-                            print(" to ", [comm.get_community_name() for comm in event[3]])
+                            print("{0:15s} {1:10s} {2:14s} {3:40s}".format(" to community",
+                                  str(tuple(comm.get_community_name() for comm in event[3]))[1:-1],
+                                  " with nodes ", str(tuple(p.node_number for comm in event[3]
+                                                              for p in comm.nodes))[1:-1]))
                         else:
                             print()
 
 
-def printouts(confusion_matrix, score, communities_t0, communities_t1, exclude_continuations):
+def printouts(confusion_matrix, score, communities_t0, communities_t1):
 
     confusion_matrix_print, confusion_matrix_percentage, jaccard_index, continuity, \
-        community_events_t0, community_events_t1 = print_parameters()
+        community_events_t0, community_events_t1, exclude_continuations = print_parameters()
 
     if confusion_matrix_print:
         print("")
@@ -195,7 +207,6 @@ def printouts(confusion_matrix, score, communities_t0, communities_t1, exclude_c
         print("Continuity Matrix")
         print_matrices(Community.continuation, communities_t0, communities_t1, "8d")
     if community_events_t0:
-        #   print("")
         #   print("At the end of time ", Ts.timestamp - 1)
         print_community_events(communities_t0, True, exclude_continuations)
     if score != 0:
