@@ -32,13 +32,13 @@ degree_affinity = 0.5                  # affinity of node degrees across interva
 assortativity = 0.8                   # degree of dis/assortativity ( ]0 = weakest, 1] = strongest),
 
 # next two parameters used for lifecycle determination
-jaccard_null_model = True             # using jaccard normalized to null random flow (normal jaccard if false)
-sigma = 0.7                          # jaccard threshold for community matching
+jaccard_null_model = True           # using jaccard normalized to null random flow (normal jaccard if false)
+sigma = 0.5                          # jaccard threshold for community matching
 
 stop_if_disjoint = False              # Abort run if community is disjoint
 
-write_gephi = True                    # write file for gephi
-write_netgram = True                  # write file for matlab
+write_gephi = False                    # write file for gephi
+write_netgram = False                  # write file for matlab
 
 
 def search_parameters() -> 'int, int, int, int, int':
@@ -68,14 +68,15 @@ def search_parameters() -> 'int, int, int, int, int':
 
 
 def print_parameters():
-    confusion_matrix_print = False
-    confusion_matrix_percentage = False
-    jaccard_index = False
+    confusion_matrix_print = True
+    confusion_matrix_percentage = True
+    jaccard_index = True
     continuity = False
     community_events_t0 = True
     community_events_t1 = True
+    exclude_continuations = True
     return confusion_matrix_print, confusion_matrix_percentage, jaccard_index, continuity, \
-           community_events_t0, community_events_t1
+           community_events_t0, community_events_t1, exclude_continuations
 
 
 # @test_changes_integrity
