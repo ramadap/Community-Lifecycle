@@ -4,7 +4,7 @@ Taxonomy: Community-Lifecycle, Code to analyse a temporal network and output com
 
 Description
 #############
-Please refer to "Community identity in a temporal network: A taxonomy proposal", Pereira et al., on Ecological Complexity, in press. https://ciencia.iscte-iul.pt/publications/community-identity-in-a-temporal-network-a-taxonomy-proposal/77648
+Please refer to "Community identity in a temporal network: A taxonomy proposal", Pereira et al., on Ecological Complexity, Vol. 45, 2020. https://www.sciencedirect.com/science/article/pii/S1476945X20301847
 or to "A Taxonomy of Community Lifecycle Events in Temporal Networks", on IEEE Xplore repository https://ieeexplore.ieee.org/document/8930777/.
 
 This python code uses various classes from "Syntgen: A synthetic temporal network generator with clustering and known ground truth" published in the IMA Journal of Complex Networks, https://doi.org/10.1093/comnet/cnz039. Syntgen code is available at https://github.com/ramadap/Syntgen
